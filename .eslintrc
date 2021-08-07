@@ -1,0 +1,5 @@
+{
+  "root": true,
+  "extends": ["plugin:jest/recommended"],
+  "rules": ["prettier/prettier"]
+}
