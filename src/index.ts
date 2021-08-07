@@ -19,6 +19,7 @@ dotenv.config();
 
 const url = process.env.TRAVELYNX_SLACK_URL;
 const signingAlgorithm = process.env.JWT_SIGNING_ALGORITHM;
+const keyDir = "./keys";
 const privKeyPath = "./keys/priv.json";
 const pubKeyPath = "./keys/pub.json";
 
@@ -56,6 +57,10 @@ const InstallationModel = Installation(sequelize);
 
     const privateJwk = await fromKeyLike(keyPair.privateKey);
     const publicJwk = await fromKeyLike(keyPair.publicKey);
+
+    if (!fs.existsSync(keyDir)) {
+      fs.mkdirSync(keyDir);
+    }
 
     fs.writeFileSync(privKeyPath, JSON.stringify(privateJwk));
     fs.writeFileSync(pubKeyPath, JSON.stringify(publicJwk));
