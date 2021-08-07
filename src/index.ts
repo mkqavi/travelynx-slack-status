@@ -19,6 +19,8 @@ dotenv.config();
 
 const url = process.env.TRAVELYNX_SLACK_URL;
 const signingAlgorithm = process.env.JWT_SIGNING_ALGORITHM;
+const privKeyPath = "./keys/priv.json";
+const pubKeyPath = "./keys/pub.json";
 
 const logger = winston.createLogger({
   level: "debug",
@@ -32,20 +34,18 @@ const logger = winston.createLogger({
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./app.db",
+  storage: "./db/app.db",
 });
 
 const InstallationModel = Installation(sequelize);
 
 (async () => {
   let keyPair: GenerateKeyPairResult;
-  if (fs.existsSync("./pub.json") && fs.existsSync("./priv.json")) {
+  if (fs.existsSync(pubKeyPath) && fs.existsSync(privKeyPath)) {
     const privateJwk = JSON.parse(
-      fs.readFileSync("./priv.json").toString()
+      fs.readFileSync(privKeyPath).toString()
     ) as JWK;
-    const publicJwk = JSON.parse(
-      fs.readFileSync("./pub.json").toString()
-    ) as JWK;
+    const publicJwk = JSON.parse(fs.readFileSync(pubKeyPath).toString()) as JWK;
 
     keyPair = {
       privateKey: await parseJwk(privateJwk, signingAlgorithm),
@@ -57,8 +57,8 @@ const InstallationModel = Installation(sequelize);
     const privateJwk = await fromKeyLike(keyPair.privateKey);
     const publicJwk = await fromKeyLike(keyPair.publicKey);
 
-    fs.writeFileSync("./priv.json", JSON.stringify(privateJwk));
-    fs.writeFileSync("./pub.json", JSON.stringify(publicJwk));
+    fs.writeFileSync(privKeyPath, JSON.stringify(privateJwk));
+    fs.writeFileSync(pubKeyPath, JSON.stringify(publicJwk));
   }
 
   const receiver = expressReceiverSetup(InstallationModel);
@@ -86,7 +86,7 @@ const InstallationModel = Installation(sequelize);
   console.log(
     await receiver.installer.generateInstallUrl({
       scopes: ["im:history", "chat:write"],
-      userScopes: ["users.profile:write", "identity.basic"],
+      userScopes: ["users.profile:write"],
       redirectUri: `${url}/slack/oauth_redirect`,
     })
   );

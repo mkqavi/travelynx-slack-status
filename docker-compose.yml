@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  bot:
+    build: ./
+    image: travelynx-slack-status:dev
+    ports:
+      - 3000:3000
+    volumes:
+      - db-data:/app/db
+      - key-data:/app/keys
+
+volumes:
+  db-data:
+  key-data:
